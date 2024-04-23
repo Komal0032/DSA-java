@@ -1,0 +1,147 @@
+
+/*file handling*/
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+struct Student {
+    int rollNumber;
+    string name;
+    char division;
+    string address;
+};
+
+void addStudent(const string& filename);
+void deleteStudent(const string& filename, int rollNumber);
+void displayStudent(const string& filename, int rollNumber);
+
+int main() {
+    string filename = "student_info.txt";
+
+    int choice;
+    do {
+        cout << "\nMenu:\n";
+        cout << "1. Add student information\n";
+        cout << "2. Delete student information\n";
+        cout << "3. Display student information\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                addStudent(filename);
+                break;
+            case 2: {
+                int rollNumberToDelete;
+                cout << "Enter the roll number of the student to delete: ";
+                cin >> rollNumberToDelete;
+                deleteStudent(filename, rollNumberToDelete);
+                break;
+            }
+            case 3: {
+                int rollNumberToDisplay;
+                cout << "Enter the roll number of the student to display: ";
+                cin >> rollNumberToDisplay;
+                displayStudent(filename, rollNumberToDisplay);
+                break;
+            }
+            case 4:
+                cout << "Exiting program.\n";
+                break;
+            default:
+                cout << "Invalid choice. Please enter a number between 1 and 4.\n";
+                break;
+        }
+    } while (choice != 4);
+
+    return 0;
+}
+
+
+void addStudent(const string& filename) {
+    ofstream outputFile(filename, ios::app);
+
+    if (!outputFile.is_open()) {
+        cout << "Error: Unable to open file for writing!\n";
+        return;
+    }
+
+    Student newStudent;
+    cout << "Enter roll number, name, division, and address of the student:\n";
+    cin >> newStudent.rollNumber;
+    cin.ignore(); 
+    getline(cin, newStudent.name);
+    cin >> newStudent.division;
+    cin.ignore(); 
+    getline(cin, newStudent.address);
+
+    outputFile << newStudent.rollNumber << " " << newStudent.name << " " << newStudent.division << " " << newStudent.address << endl;
+
+    outputFile.close();
+    cout << "Student information added successfully.\n";
+}
+
+
+void deleteStudent(const string& filename, int rollNumber) {
+    ifstream inputFile(filename);
+    ofstream tempFile("temp.txt");
+
+    if (!inputFile.is_open() || !tempFile.is_open()) {
+        cout << "Error: Unable to open files for reading or writing!\n";
+        return;
+    }
+
+    bool found = false;
+    Student student;
+    while (inputFile >> student.rollNumber >> student.name >> student.division >> student.address) {
+        if (student.rollNumber != rollNumber) {
+            tempFile << student.rollNumber << " " << student.name << " " << student.division << " " << student.address << endl;
+        } else {
+            found = true;
+        }
+    }
+
+    inputFile.close();
+    tempFile.close();
+
+    if (!found) {
+        cout << "Student with roll number " << rollNumber << " not found.\n";
+        remove("temp.txt");
+    } else {
+        remove(filename.c_str());
+        rename("temp.txt", filename.c_str());
+        cout << "Student with roll number " << rollNumber << " deleted successfully.\n";
+    }
+}
+
+
+void displayStudent(const string& filename, int rollNumber) {
+    ifstream inputFile(filename);
+
+    if (!inputFile.is_open()) {
+        cout << "Error: Unable to open file for reading!\n";
+        return;
+    }
+
+    Student student;
+    bool found = false;
+    while (inputFile >> student.rollNumber >> student.name >> student.division >> student.address) {
+        if (student.rollNumber == rollNumber) {
+            cout << "Roll Number: " << student.rollNumber << endl;
+            cout << "Name: " << student.name << endl;
+            cout << "Division: " << student.division << endl;
+            cout << "Address: " << student.address << endl;
+            found = true;
+            break;
+        }
+    }
+
+    inputFile.close();
+
+    if (!found) {
+        cout << "Student with roll number " << rollNumber << " not found.\n";
+    }
+}
